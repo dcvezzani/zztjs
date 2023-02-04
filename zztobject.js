@@ -173,16 +173,7 @@ var baseObjectMove = function (board, dir)
    if (that?.properties?.name == "empty")
    {
       board.moveActor(PLAYER_ACTOR_INDEX, newX, newY)
-
-      // /* If where we're trying to move is an Empty, then just swap. */
-      // this.x = newX;
-      // this.y = newY;
-      // board.set(newX, newY, this);
-
-      // that.x = oldX;
-      // that.y = oldY;
-      // board.set(oldX, oldY, that);
-
+      
       return true;
    }
    /* else if not empty then it's a little more complicated */
@@ -193,17 +184,14 @@ var baseObjectMove = function (board, dir)
       if (this.name == "player" && that?.properties?.takeItem && that.properties.takeItem())
       {
          board.moveActor(PLAYER_ACTOR_INDEX, newX, newY)
-
-         // this.x = newX;
-         // this.y = newY;
-         // board.set(newX, newY, this);
-
-         // /* Where the player used to be, put an Empty. */
-         // that = new Empty;
-         // that.x = oldX;
-         // that.y = oldY;
-         // board.set(oldX, oldY, that);
       }
+      
+      //if we're the player, and we're touching a forrest, move anyway
+      if (this.name == "player" && that?.properties?.name === "forest")
+      {
+         board.moveActor(PLAYER_ACTOR_INDEX, newX, newY)
+      }
+      
    }
 
    return false;
