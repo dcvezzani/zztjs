@@ -119,6 +119,7 @@ ZZTBoard.prototype.move = function(sx, sy, dx, dy)
 ZZTBoard.prototype.moveActor = function(actorIndex, x, y)
 {
    var actorData = this.statusElement[actorIndex];
+   // console.log(">>> moveActor; actorData", actorData)
    var srcTile = this.get(actorData.x, actorData.y);
    var dstTile = this.get(x, y);
 

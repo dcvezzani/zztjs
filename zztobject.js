@@ -1,5 +1,7 @@
 'use strict';
 
+const PLAYER_ACTOR_INDEX = 0
+
 function getRandomInt(min, max)
 {
    return Math.floor(Math.random() * (max - min + 1) + min);
@@ -166,16 +168,20 @@ var baseObjectMove = function (board, dir)
       newX = board.width - 1;
 
    var that = board.get(newX, newY);
-   if (that.name == "empty")
-   {
-      /* If where we're trying to move is an Empty, then just swap. */
-      this.x = newX;
-      this.y = newY;
-      board.set(newX, newY, this);
 
-      that.x = oldX;
-      that.y = oldY;
-      board.set(oldX, oldY, that);
+
+   if (that?.properties?.name == "empty")
+   {
+      board.moveActor(PLAYER_ACTOR_INDEX, newX, newY)
+
+      // /* If where we're trying to move is an Empty, then just swap. */
+      // this.x = newX;
+      // this.y = newY;
+      // board.set(newX, newY, this);
+
+      // that.x = oldX;
+      // that.y = oldY;
+      // board.set(oldX, oldY, that);
 
       return true;
    }
@@ -184,17 +190,19 @@ var baseObjectMove = function (board, dir)
    {
       /* if we're the player, and we're touching an item, and that item can be taken,
          then we take it. */
-      if (this.name == "player" && that.takeItem && that.takeItem())
+      if (this.name == "player" && that?.properties?.takeItem && that.properties.takeItem())
       {
-         this.x = newX;
-         this.y = newY;
-         board.set(newX, newY, this);
+         board.moveActor(PLAYER_ACTOR_INDEX, newX, newY)
 
-         /* Where the player used to be, put an Empty. */
-         that = new Empty;
-         that.x = oldX;
-         that.y = oldY;
-         board.set(oldX, oldY, that);
+         // this.x = newX;
+         // this.y = newY;
+         // board.set(newX, newY, this);
+
+         // /* Where the player used to be, put an Empty. */
+         // that = new Empty;
+         // that.x = oldX;
+         // that.y = oldY;
+         // board.set(oldX, oldY, that);
       }
    }
 
@@ -351,10 +359,11 @@ var Player =
            return true;
         }
         else {
-          genericEnemyMove(actorIndex, board, walkDirection);
+         this.baseObjectMove(board, walkDirection);
         }
       }
-   }
+   },
+   baseObjectMove,
 }
 
 var Ammo =
