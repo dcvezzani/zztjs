@@ -76,7 +76,7 @@ var ZInputEvent = Object.freeze({
 function getWorldList(callback)
 {
    var request = new XMLHttpRequest();
-   request.open("GET", "worlds/index.json", true);
+   request.open("GET", "/public/worlds/index.json", true);
    request.onload = function(e)
    {
       var worlds = {};
@@ -115,7 +115,7 @@ function mainMenuKeyDown(event)
             {
                var filename = ev.dialog.filenames[ev.line];
                window.location.hash = "#!" + filename;
-               gameLoad("worlds/" + filename);
+               gameLoad("/public/worlds/" + filename);
                return true;
             }
             return false;
@@ -254,7 +254,7 @@ function gameInit(canvas)
    if (!opts.world)
       opts.world = "town.zzt";
 
-   gameLoad("worlds/" + opts.world);
+   gameLoad("/public/worlds/" + opts.world);
 }
 
 function goToTitleScreen()
@@ -311,6 +311,7 @@ function drawTitleScreenStatusBar()
 
    game.console.setString(62, 21, " S ", VGA.ATTR_BG_GRAY);
    game.console.setString(66, 21, "Game speed:", VGA.ATTR_BG_BLUE|VGA.ATTR_FG_YELLOW);
+   // TODO: need to render dynamically to indicate current speed
    game.console.setString(66, 23, "F....:....S", VGA.ATTR_BG_BLUE|VGA.ATTR_FG_YELLOW);
 }
 

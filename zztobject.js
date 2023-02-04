@@ -721,7 +721,12 @@ var Lion =
 var Tiger =
 {
    glyph: 227,
-   name: "tiger"
+   name: "tiger",
+   update: function(board, actorIndex)
+   {
+      var dir = Direction.random();
+      genericEnemyMove(actorIndex, board, dir);
+   }   
 }
 
 var VertBlinkWallRay =

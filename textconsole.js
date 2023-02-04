@@ -102,7 +102,7 @@ TextConsole.prototype.getSpriteCoords = function(ord)
 
 TextConsole.prototype.init = function(callback)
 {
-   this.loadFont("cp437.png", callback);
+   this.loadFont("/public/cp437.png", callback);
 }
 
 TextConsole.prototype.loadFont = function(url, callback)
@@ -209,7 +209,7 @@ TextConsole.prototype.redrawAt = function(x, y)
 
    if (this.fontImages[bgcolor] == null || this.fontImages[fgcolor] == null)
    {
-      console.log("trying to draw before images loaded!");
+      console.log("trying to draw before images loaded!", bgcolor, fgcolor);
       return;
    }
 
