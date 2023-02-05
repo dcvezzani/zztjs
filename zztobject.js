@@ -192,6 +192,8 @@ var baseObjectMove = function (board, dir)
          board.moveActor(PLAYER_ACTOR_INDEX, newX, newY)
       }
       
+      // if we're the player hitting a collidable... (e.g., passage)
+      this.name == "player" && that?.properties?.onCollision && that.properties.onCollision(this, board, newX, newY)
    }
 
    return false;
@@ -346,6 +348,13 @@ var Player =
 
            return true;
         }
+
+
+        // // if we have walked off the screen...
+        // if () {
+        //   board.load()
+        // }
+        // else try to move the player
         else {
          this.baseObjectMove(board, walkDirection);
         }
@@ -516,7 +525,42 @@ var Scroll =
 var Passage =
 {
    glyph: 240,
-   name: "passage"
+   name: "passage",
+   onCollision: function(otherObject, board, x, y) {
+      if (otherObject?.name === 'player') {
+         const thisObject = board.getActorAt(x, y)
+
+         const newBoardID = thisObject?.param3
+         const newBoard = game.world.board[newBoardID];
+        
+         // ZZTBoard.load(newBoardID, 
+
+         // console.log(">>> Player hit me", this, thisObject, newBoard)
+
+         const exitPassage = newBoard.statusElement.find(obj => {
+           const tile = newBoard.get(obj.x, obj.y)
+           // console.log(">>>tile", tile, {x: obj.x, y: obj.y})
+           if (tile?.properties?.name === 'passage') {
+             const passageObject = newBoard.getActorAt(obj.x, obj.y)
+             // console.log(">>> passageObject", passageObject, board.id)
+             return (passageObject?.param3 === board.id)
+           }
+         })
+         // console.log(">>> exitPassage", exitPassage)
+
+         const newX = exitPassage.x
+         const newY = exitPassage.y
+
+         return ZZTBoard.load(newBoardID, newX, newY)
+
+         // Get passage object properties
+         // - determine what room the passage is attached to
+         // - determine what x,y position the passage exit is located at
+         // - load the appropriate board
+         // - move player to location of passage exit
+         // - alternate player and passage with each tick
+      }
+   }
 }
 
 /* xstep/ystep are relative coords for source, rate is P2 */

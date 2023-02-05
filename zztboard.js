@@ -101,6 +101,30 @@ ZZTBoard.prototype.remove = function(x, y)
    this.set(x, y, _ZZTBoard_BoardEmpty);
 }
 
+ZZTBoard.load = function(boardID, x, y)
+{
+   /* Correct newX/newY for the fact that we've crossed boards */
+
+   var board = game.world.board[boardID];
+
+   // if (newX < 0)
+   //    newX = board.width - 1;
+   // else if (newX >= board.width)
+   //    newX = 0;
+
+   // if (newY < 0)
+   //    newY = board.height - 1;
+   // else if (newY >= board.height)
+   //    newY = 0;
+
+   /* make this the new current board and move the player there */
+   game.world.playerBoard = boardID;
+   game.world.currentBoard = board;
+   game.world.currentBoard.moveActor(PLAYER_ACTOR_INDEX, x, y);
+
+   return true;
+}
+
 ZZTBoard.prototype.move = function(sx, sy, dx, dy)
 {
    var actorIndex = this.getActorIndexAt(sx, sy);

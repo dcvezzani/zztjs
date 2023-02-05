@@ -59,17 +59,18 @@ ZZTWorldLoader.prototype.parseWorldData = function(stream)
    stream.position = 512;
 
    for (var i = 0; i < world.numBoards; ++i)
-      world.board.push(this.parseZZTBoard(stream));
+      world.board.push(this.parseZZTBoard(stream, i));
 
    return world;
 }
 
-ZZTWorldLoader.prototype.parseZZTBoard = function(stream)
+ZZTWorldLoader.prototype.parseZZTBoard = function(stream, id)
 {
    var boardOffset = stream.position;
    var boardSize = stream.getInt16();
 
    var board = new ZZTBoard;
+   board.id = id
    board.name = stream.getFixedPascalString(50);
 
    board.width = 60;
