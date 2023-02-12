@@ -120,8 +120,14 @@ ZZTBoard.load = function(boardID, x, y)
    /* make this the new current board and move the player there */
    game.world.playerBoard = boardID;
    game.world.currentBoard = board;
-   game.world.currentBoard.moveActor(PLAYER_ACTOR_INDEX, x, y);
 
+   const passage = game.world.currentBoard.get(x,y)
+   // console.log(">>>passage", passage)
+
+   game.world.currentBoard.moveActor(PLAYER_ACTOR_INDEX, x, y);
+   // const player = board.statusElement[PLAYER_ACTOR_INDEX];
+   // player.underTile = passage
+  
    return true;
 }
 
@@ -147,11 +153,22 @@ ZZTBoard.prototype.moveActor = function(actorIndex, x, y)
    var srcTile = this.get(actorData.x, actorData.y);
    var dstTile = this.get(x, y);
 
+   // set the underTile to where the actor was
    this.set(actorData.x, actorData.y, actorData.underTile);
+
+   // set the new location for actor
    this.set(x, y, srcTile);
 
    actorData.x = x;
    actorData.y = y;
+
+   // Only apply this to tiles that can exist under the actor
+   // - e.g., passages
+   // - not torches; those are picked up
+   if (dstTile?.properties?.allowUndertile)
+     actorData.underTile = dstTile
+   else
+     actorData.underTile = _ZZTBoard_BoardEmpty
 }
 
 ZZTBoard.prototype.draw = function(textconsole)

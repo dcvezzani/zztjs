@@ -526,6 +526,7 @@ var Passage =
 {
    glyph: 240,
    name: "passage",
+   allowUndertile: true,
    onCollision: function(otherObject, board, x, y) {
       if (otherObject?.name === 'player') {
          const thisObject = board.getActorAt(x, y)
