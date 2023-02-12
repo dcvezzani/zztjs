@@ -195,9 +195,14 @@ ZZTBoard.prototype.draw = function(textconsole)
          let color =  renderInfo.color
          let glyph = renderInfo.glyph
          if (!isPlayer && this.isDark) {
-           if ((x < playerX-5 || x > playerX+5) || (y < playerY-5 || y > playerY+5)) {
+           if (
+                ((x < playerX-6 || x > playerX+6) || (y < playerY-4 || y > playerY+4))
+             || (x === playerX-6 && (y < playerY-2 || y > playerY+2))
+             || (x === playerX+6 && (y < playerY-2 || y > playerY+2))
+             || ((x < playerX-4 || x > playerX+4) && (y === playerY-4 || y === playerY+4))
+           ) {
              color =  VGA.ATTR_FG_WHITE
-             glyph = NormalWall.glyph
+             glyph = BreakableWall.glyph
            }
          }
          textconsole.set(x, y, glyph, color);
