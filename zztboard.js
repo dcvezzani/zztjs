@@ -156,11 +156,14 @@ ZZTBoard.prototype.moveActor = function(actorIndex, x, y)
 
 ZZTBoard.prototype.draw = function(textconsole)
 {
+   const {x: playerX, y: playerY} = this.statusElement[0]
+  
    for (var y = 0; y < this.height; ++y)
    {
       for (var x = 0; x < this.width; ++x)
       {
          var tile = this.get(x, y);
+         const isPlayer = tile?.name === 'player'
          var renderInfo = null;
 
          if (tile.properties.draw)
@@ -171,7 +174,16 @@ ZZTBoard.prototype.draw = function(textconsole)
          {
             renderInfo = getTileRenderInfo(tile);
          }
-         textconsole.set(x, y, renderInfo.glyph, renderInfo.color);
+
+         let color =  renderInfo.color
+         let glyph = renderInfo.glyph
+         if (!isPlayer && this.isDark) {
+           if ((x < playerX-5 || x > playerX+5) || (y < playerY-5 || y > playerY+5)) {
+             color =  VGA.ATTR_FG_WHITE
+             glyph = NormalWall.glyph
+           }
+         }
+         textconsole.set(x, y, glyph, color);
       }
    }
 
