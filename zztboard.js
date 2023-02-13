@@ -103,30 +103,12 @@ ZZTBoard.prototype.remove = function(x, y)
 
 ZZTBoard.load = function(boardID, x, y)
 {
-   /* Correct newX/newY for the fact that we've crossed boards */
-
-   var board = game.world.board[boardID];
-
-   // if (newX < 0)
-   //    newX = board.width - 1;
-   // else if (newX >= board.width)
-   //    newX = 0;
-
-   // if (newY < 0)
-   //    newY = board.height - 1;
-   // else if (newY >= board.height)
-   //    newY = 0;
+   const board = game.world.board[boardID];
 
    /* make this the new current board and move the player there */
    game.world.playerBoard = boardID;
    game.world.currentBoard = board;
-
-   const passage = game.world.currentBoard.get(x,y)
-   // console.log(">>>passage", passage)
-
    game.world.currentBoard.moveActor(PLAYER_ACTOR_INDEX, x, y);
-   // const player = board.statusElement[PLAYER_ACTOR_INDEX];
-   // player.underTile = passage
   
    return true;
 }
