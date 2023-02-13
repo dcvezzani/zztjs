@@ -58,7 +58,7 @@ ZZTWorldLoader.prototype.parseWorldData = function(stream)
    /* board information then starts at offset 512 */
    stream.position = 512;
 
-   for (var i = 0; i < world.numBoards; ++i)
+   for (var i = 0; i <= world.numBoards; ++i)
       world.board.push(this.parseZZTBoard(stream, i));
 
    return world;
