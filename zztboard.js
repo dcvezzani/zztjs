@@ -162,7 +162,7 @@ ZZTBoard.prototype.draw = function(textconsole)
       for (var x = 0; x < this.width; ++x)
       {
          var tile = this.get(x, y);
-         const isPlayer = tile?.name === 'player'
+         const isPlayer = tile?.properties?.name === 'player'
          var renderInfo = null;
 
          if (tile.properties.draw)
@@ -176,9 +176,21 @@ ZZTBoard.prototype.draw = function(textconsole)
 
          let color =  renderInfo.color
          let glyph = renderInfo.glyph
-         if (!isPlayer && this.isDark) {
+         if (isPlayer) {
+           const underTile = this.statusElement[0]?.underTile
+           if (underTile?.properties?.name === "passage") {
+             if (this.tick % 10 < 5) {
+               color = tile?.color
+               glyph = tile?.properties?.glyph
+             } else {
+               color = underTile?.color
+               glyph = underTile?.properties?.glyph
+             }
+           }
+         } else if (!isPlayer && this.isDark) {
            if (
-                ((x < playerX-6 || x > playerX+6) || (y < playerY-4 || y > playerY+4))
+                (y !== playerY && ((x < playerX-6 || x > playerX+6) || (y < playerY-4 || y > playerY+4)))
+             || (y === playerY && (x < playerX-7 || x > playerX+7))
              || (x === playerX-6 && (y < playerY-2 || y > playerY+2))
              || (x === playerX+6 && (y < playerY-2 || y > playerY+2))
              || ((x < playerX-4 || x > playerX+4) && (y === playerY-4 || y === playerY+4))
