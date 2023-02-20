@@ -66,6 +66,25 @@ ZZTBoard.prototype.set = function(x, y, tile)
    this.tiles[y * this.width + x] = tile;
 }
 
+ZZTBoard.prototype.updateTorchCycles = function()
+{
+   if (game.world.torchCycles > 0) {
+     if (game.world.torchCycleOffset === null) {
+       game.world.torchCycleOffset = this.tick;
+       // console.log(`>>>torch cycle initialized; offset: ${game.world.torchCycleOffset}`)
+     }
+     else if ((Math.abs(this.tick-game.world.torchCycleOffset) % Torch.ticksPerCycle) === 0) {
+       game.world.torchCycles--;
+       // console.log(`>>>torch cycle exhausted; ${game.world.torchCycles} left`)
+
+       if (game.world.torchCycles === 0) {
+         // console.log(`>>>torch exhausted`)
+         Torch.die()
+       }
+     }
+   }
+}
+
 ZZTBoard.prototype.update = function()
 {
    var self = this;
@@ -74,10 +93,21 @@ ZZTBoard.prototype.update = function()
    {
       this.tick++;
       /* According to roton the tick counter wraps at 420. */
-      if (this.tick > 420)
+      // console.log(">>>tick")
+      if (this.tick > 420) {
+         // console.log(">>>resetting tick")
          this.tick = 1;
+      }
       this.actorIndex = 0;
    }
+
+   if (this.isDark && !game.world.hasGotDarknessMsg)
+   {
+      game.world.currentBoard.setMessage("Room is dark - you need to light a torch!");
+      game.world.hasGotDarknessMsg = true;
+   }
+
+   this.updateTorchCycles()
 
    while (this.actorIndex < this.statusElement.length)
    {
@@ -153,10 +183,66 @@ ZZTBoard.prototype.moveActor = function(actorIndex, x, y)
      actorData.underTile = _ZZTBoard_BoardEmpty
 }
 
+ZZTBoard.prototype.resolvePlayerGlyphAndColor = function(renderInfo, tile)
+{
+   const underTile = this.statusElement[0]?.underTile
+   if (underTile?.properties?.name === "passage") {
+     if (this.tick % 4 < 2) {
+       renderInfo.color = tile?.color
+       renderInfo.glyph = tile?.properties?.glyph
+     } else {
+       renderInfo.color = underTile?.color
+       renderInfo.glyph = underTile?.properties?.glyph
+     }
+   }
+}
+
+ZZTBoard.prototype.resolveDarknessGlyphAndColor = function(renderInfo, x, y, visibleElements)
+{
+   const player = visibleElements[0]
+   const visibleElement = visibleElements.find(entry => (x === entry.x && y === entry.y))
+
+   if (game.world.torchCycles === 0
+   ) {
+     if (!visibleElement) {
+       renderInfo.color =  VGA.ATTR_FG_WHITE
+       renderInfo.glyph = BreakableWall.glyph
+      }
+   }
+  else if ((
+      (y !== player.y && ((x < player.x-6 || x > player.x+6) || (y < player.y-4 || y > player.y+4)))
+      || (y === player.y && (x < player.x-7 || x > player.x+7))
+      || (x === player.x-6 && (y < player.y-2 || y > player.y+2))
+      || (x === player.x+6 && (y < player.y-2 || y > player.y+2))
+      || ((x < player.x-4 || x > player.x+4) && (y === player.y-4 || y === player.y+4))
+    )
+    && !visibleElement
+  ) {
+     renderInfo.color =  VGA.ATTR_FG_WHITE
+     renderInfo.glyph = BreakableWall.glyph
+   }
+}
+
 ZZTBoard.prototype.draw = function(textconsole)
 {
-   const {x: playerX, y: playerY} = this.statusElement[0]
-  
+   // To make other elements "visible" even in the dark, include "visibleInTheDark" as an object property
+   // 
+   // E.g.,
+   //
+   // var Passage =
+   // {
+   //    glyph: 240,
+   //    name: "passage",
+   //    allowUndertile: true,
+   //    visibleInTheDark: true, <<<
+   //    ...
+   //
+   const visibleElements = this.statusElement.reduce((coll, entry) => {
+     const tile = this.get(entry.x, entry.y)
+     if (tile?.properties?.visibleInTheDark) coll.push({name: tile?.properties?.name, x: entry.x, y: entry.y})
+     return coll
+   }, [])
+
    for (var y = 0; y < this.height; ++y)
    {
       for (var x = 0; x < this.width; ++x)
@@ -174,31 +260,14 @@ ZZTBoard.prototype.draw = function(textconsole)
             renderInfo = getTileRenderInfo(tile);
          }
 
-         let color =  renderInfo.color
-         let glyph = renderInfo.glyph
          if (isPlayer) {
-           const underTile = this.statusElement[0]?.underTile
-           if (underTile?.properties?.name === "passage") {
-             if (this.tick % 10 < 5) {
-               color = tile?.color
-               glyph = tile?.properties?.glyph
-             } else {
-               color = underTile?.color
-               glyph = underTile?.properties?.glyph
-             }
-           }
+           this.resolvePlayerGlyphAndColor(renderInfo, tile)
+
          } else if (!isPlayer && this.isDark) {
-           if (
-                (y !== playerY && ((x < playerX-6 || x > playerX+6) || (y < playerY-4 || y > playerY+4)))
-             || (y === playerY && (x < playerX-7 || x > playerX+7))
-             || (x === playerX-6 && (y < playerY-2 || y > playerY+2))
-             || (x === playerX+6 && (y < playerY-2 || y > playerY+2))
-             || ((x < playerX-4 || x > playerX+4) && (y === playerY-4 || y === playerY+4))
-           ) {
-             color =  VGA.ATTR_FG_WHITE
-             glyph = BreakableWall.glyph
-           }
+           this.resolveDarknessGlyphAndColor(renderInfo, x, y, visibleElements)
          }
+
+         const { color, glyph } =  renderInfo
          textconsole.set(x, y, glyph, color);
       }
    }

@@ -41,6 +41,7 @@ ZZTWorldLoader.prototype.parseWorldData = function(stream)
 
    world.playerTorches = stream.getInt16();
    world.torchCycles = stream.getInt16();
+   world.torchCycleOffset = null
    world.energyCycles = stream.getInt16();
    stream.position += 2; /* unused */
    world.playerScore = stream.getInt16();

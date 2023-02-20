@@ -315,6 +315,21 @@ function drawTitleScreenStatusBar()
    game.console.setString(66, 23, "F....:....S", VGA.ATTR_BG_BLUE|VGA.ATTR_FG_YELLOW);
 }
 
+function drawTorchStatus() {
+   if (game.world.torchCycles > 0) {
+     // Show torch progress bar, if torch has been lit
+     // game.console.setString(75,  9, "XXXX", yellowOnBlue);
+
+     // const numExhaustedTorchCycles = Torch.maxCycles - game.world.torchCycles
+     [{col:75, glyph:178},{col:76, glyph:178},{col:77, glyph:178},{col:78, glyph:178}].map((entry, index) => {
+       let currentEntry = entry
+       if (index >= (game.world.torchCycles-1)) currentEntry = {...entry, glyph:177} // 176, 177
+
+       game.console.set(currentEntry.col,  9, currentEntry.glyph, VGA.ATTR_BG_BLUE|VGA.ATTR_FG_BROWN);
+     })
+   }
+}
+
 function drawGameStatusBar()
 {
    var yellowOnBlue = VGA.ATTR_BG_BLUE|VGA.ATTR_FG_YELLOW;
@@ -328,6 +343,8 @@ function drawGameStatusBar()
    game.console.setString(64,  7, " Health:" + game.world.playerHealth, yellowOnBlue);
    game.console.setString(64,  8, "   Ammo:" + game.world.playerAmmo, yellowOnBlue);
    game.console.setString(64,  9, "Torches:" + game.world.playerTorches, yellowOnBlue);
+   drawTorchStatus()
+  
    game.console.setString(64, 10, "   Gems:" + game.world.playerGems, yellowOnBlue);
    game.console.setString(64, 11, "  Score:" + game.world.playerScore, yellowOnBlue);
    game.console.setString(64, 12, "   Keys:", yellowOnBlue);
