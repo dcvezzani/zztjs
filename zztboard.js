@@ -103,25 +103,13 @@ ZZTBoard.prototype.remove = function(x, y)
 
 ZZTBoard.load = function(boardID, x, y)
 {
-   /* Correct newX/newY for the fact that we've crossed boards */
-
-   var board = game.world.board[boardID];
-
-   // if (newX < 0)
-   //    newX = board.width - 1;
-   // else if (newX >= board.width)
-   //    newX = 0;
-
-   // if (newY < 0)
-   //    newY = board.height - 1;
-   // else if (newY >= board.height)
-   //    newY = 0;
+   const board = game.world.board[boardID];
 
    /* make this the new current board and move the player there */
    game.world.playerBoard = boardID;
    game.world.currentBoard = board;
    game.world.currentBoard.moveActor(PLAYER_ACTOR_INDEX, x, y);
-
+  
    return true;
 }
 
@@ -147,20 +135,34 @@ ZZTBoard.prototype.moveActor = function(actorIndex, x, y)
    var srcTile = this.get(actorData.x, actorData.y);
    var dstTile = this.get(x, y);
 
+   // set the underTile to where the actor was
    this.set(actorData.x, actorData.y, actorData.underTile);
+
+   // set the new location for actor
    this.set(x, y, srcTile);
 
    actorData.x = x;
    actorData.y = y;
+
+   // Only apply this to tiles that can exist under the actor
+   // - e.g., passages
+   // - not torches; those are picked up
+   if (dstTile?.properties?.allowUndertile)
+     actorData.underTile = dstTile
+   else
+     actorData.underTile = _ZZTBoard_BoardEmpty
 }
 
 ZZTBoard.prototype.draw = function(textconsole)
 {
+   const {x: playerX, y: playerY} = this.statusElement[0]
+  
    for (var y = 0; y < this.height; ++y)
    {
       for (var x = 0; x < this.width; ++x)
       {
          var tile = this.get(x, y);
+         const isPlayer = tile?.properties?.name === 'player'
          var renderInfo = null;
 
          if (tile.properties.draw)
@@ -171,7 +173,33 @@ ZZTBoard.prototype.draw = function(textconsole)
          {
             renderInfo = getTileRenderInfo(tile);
          }
-         textconsole.set(x, y, renderInfo.glyph, renderInfo.color);
+
+         let color =  renderInfo.color
+         let glyph = renderInfo.glyph
+         if (isPlayer) {
+           const underTile = this.statusElement[0]?.underTile
+           if (underTile?.properties?.name === "passage") {
+             if (this.tick % 10 < 5) {
+               color = tile?.color
+               glyph = tile?.properties?.glyph
+             } else {
+               color = underTile?.color
+               glyph = underTile?.properties?.glyph
+             }
+           }
+         } else if (!isPlayer && this.isDark) {
+           if (
+                (y !== playerY && ((x < playerX-6 || x > playerX+6) || (y < playerY-4 || y > playerY+4)))
+             || (y === playerY && (x < playerX-7 || x > playerX+7))
+             || (x === playerX-6 && (y < playerY-2 || y > playerY+2))
+             || (x === playerX+6 && (y < playerY-2 || y > playerY+2))
+             || ((x < playerX-4 || x > playerX+4) && (y === playerY-4 || y === playerY+4))
+           ) {
+             color =  VGA.ATTR_FG_WHITE
+             glyph = BreakableWall.glyph
+           }
+         }
+         textconsole.set(x, y, glyph, color);
       }
    }
 
