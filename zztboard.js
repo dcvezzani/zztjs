@@ -24,6 +24,7 @@ function ZZTBoard()
 {
    this.actorIndex = 0;
    this.tick = 0;
+   this.savedTick = null;
 }
 
 ZZTBoard.prototype.withinBoard = function(x, y)
@@ -89,6 +90,7 @@ ZZTBoard.prototype.update = function()
 {
    var self = this;
 
+   // console.log(">>>this.actorIndex", this.actorIndex)
    if (this.actorIndex >= this.statusElement.length)
    {
       this.tick++;
@@ -138,7 +140,11 @@ ZZTBoard.load = function(boardID, x, y)
    /* make this the new current board and move the player there */
    game.world.playerBoard = boardID;
    game.world.currentBoard = board;
-   game.world.currentBoard.moveActor(PLAYER_ACTOR_INDEX, x, y);
+
+   if (typeof x != "undefined" && typeof x != "undefined")
+     game.world.currentBoard.moveActor(PLAYER_ACTOR_INDEX, x, y);
+
+   game.pause()
   
    return true;
 }
@@ -187,7 +193,7 @@ ZZTBoard.prototype.resolvePlayerGlyphAndColor = function(renderInfo, tile)
 {
    const underTile = this.statusElement[0]?.underTile
    if (underTile?.properties?.name === "passage") {
-     if (this.tick % 4 < 2) {
+     if (game.tick % 4 < 2) {
        renderInfo.color = tile?.color
        renderInfo.glyph = tile?.properties?.glyph
      } else {
