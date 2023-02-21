@@ -177,6 +177,7 @@ function inGameKeyDown(event)
    else if (event.keyCode == 80) /* "P" */
    {
       game.inputEvent = ZInputEvent.PAUSE;
+      (!game.paused) ? game.pause() : game.unpause();
       return true;
    }
    else if (event.keyCode == 81) /* "Q" */
@@ -223,7 +224,7 @@ function inGameKeyDown(event)
 function gameKeyDown(event)
 {
    if (game.paused) game.unpause()
-
+  
    if (game.dialog)
       game.dialog.keydown(event);
    else if (game.atTitleScreen)
