@@ -31,7 +31,7 @@ function ZZTBoard()
 // when a torch is lit
 function outsideLitRegion(x, y, player)
 {
-  (
+  return (
       (y !== player.y && ((x < player.x-6 || x > player.x+6) || (y < player.y-4 || y > player.y+4)))
       || (y === player.y && (x < player.x-7 || x > player.x+7))
       || (x === player.x-6 && (y < player.y-2 || y > player.y+2))
