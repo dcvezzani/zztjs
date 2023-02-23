@@ -48,14 +48,28 @@ window.requestAnimationFrame =
    window.webkitRequestAnimationFrame ||
    window.msRequestAnimationFrame;
 
-var game = {
-   inputEvent: 0,
-   quiet: false,
-   fps: 9.1032548384,
-   debug: true,
-   dialog: null,
-   tick: 0
-};
+function ZZTGame()
+{
+   this.inputEvent = 0;
+   this.quiet = false;
+   this.fps = 9.1032548384;
+   this.debug = true;
+   this.dialog = null;
+   this.tick = 0;
+   this.paused = false;
+   this.displayPaused = false;
+}
+
+ZZTGame.prototype.pause = function() {
+  this.paused = true
+}
+
+ZZTGame.prototype.unpause = function() {
+  this.displayPaused = false;
+  this.paused = false
+}
+
+var game = new ZZTGame()
 
 var ZInputEvent = Object.freeze({
    USE_TORCH : 1,
@@ -125,7 +139,8 @@ function mainMenuKeyDown(event)
    else if (event.keyCode == 80) /* "P" */
    {
       /* play game */
-      game.world.currentBoard = game.world.board[game.world.playerBoard];
+      // game.world.currentBoard = game.world.board[game.world.playerBoard];
+      ZZTBoard.load(game.world.playerBoard)
       game.atTitleScreen = false;
    }
    else if (event.keyCode == 82) /* "R" */
@@ -161,6 +176,7 @@ function inGameKeyDown(event)
    else if (event.keyCode == 80) /* "P" */
    {
       game.inputEvent = ZInputEvent.PAUSE;
+      (!game.paused) ? game.pause() : game.unpause();
       return true;
    }
    else if (event.keyCode == 81) /* "Q" */
@@ -206,6 +222,8 @@ function inGameKeyDown(event)
 
 function gameKeyDown(event)
 {
+   if (game.paused) game.unpause()
+  
    if (game.dialog)
       game.dialog.keydown(event);
    else if (game.atTitleScreen)
@@ -315,9 +333,25 @@ function drawTitleScreenStatusBar()
    game.console.setString(66, 23, "F....:....S", VGA.ATTR_BG_BLUE|VGA.ATTR_FG_YELLOW);
 }
 
+function drawTorchStatus() {
+   if (game.world.torchCycles > 0) {
+     // Show torch progress bar, if torch has been lit
+     // game.console.setString(75,  9, "XXXX", yellowOnBlue);
+
+     // const numExhaustedTorchCycles = Torch.maxCycles - game.world.torchCycles
+     [{col:75, glyph:178},{col:76, glyph:178},{col:77, glyph:178},{col:78, glyph:178}].map((entry, index) => {
+       let currentEntry = entry
+       if (index >= (game.world.torchCycles-1)) currentEntry = {...entry, glyph:177} // 176, 177
+
+       game.console.set(currentEntry.col,  9, currentEntry.glyph, VGA.ATTR_BG_BLUE|VGA.ATTR_FG_BROWN);
+     })
+   }
+}
+
 function drawGameStatusBar()
 {
    var yellowOnBlue = VGA.ATTR_BG_BLUE|VGA.ATTR_FG_YELLOW;
+   var whiteOnBlue = VGA.ATTR_BG_BLUE|VGA.ATTR_FG_WHITE
 
    game.console.set(62,  7, 2,   VGA.ATTR_BG_BLUE|VGA.ATTR_FG_WHITE);
    game.console.set(62,  8, 132, VGA.ATTR_BG_BLUE|VGA.ATTR_FG_BCYAN);
@@ -325,9 +359,14 @@ function drawGameStatusBar()
    game.console.set(62, 10, 4,   VGA.ATTR_BG_BLUE|VGA.ATTR_FG_BCYAN);
    game.console.set(62, 12, 12,  VGA.ATTR_BG_BLUE|VGA.ATTR_FG_WHITE);
 
+   if (game.displayPaused)
+     game.console.setString(64,  5, "Pausing...", whiteOnBlue);
+
    game.console.setString(64,  7, " Health:" + game.world.playerHealth, yellowOnBlue);
    game.console.setString(64,  8, "   Ammo:" + game.world.playerAmmo, yellowOnBlue);
    game.console.setString(64,  9, "Torches:" + game.world.playerTorches, yellowOnBlue);
+   drawTorchStatus()
+  
    game.console.setString(64, 10, "   Gems:" + game.world.playerGems, yellowOnBlue);
    game.console.setString(64, 11, "  Score:" + game.world.playerScore, yellowOnBlue);
    game.console.setString(64, 12, "   Keys:", yellowOnBlue);
@@ -349,31 +388,31 @@ function drawGameStatusBar()
    }
 
    game.console.setString(62, 14, " T ", VGA.ATTR_BG_GRAY);
-   game.console.setString(66, 14, "Torch", VGA.ATTR_BG_BLUE|VGA.ATTR_FG_WHITE);
+   game.console.setString(66, 14, "Torch", whiteOnBlue);
    game.console.setString(62, 15, " B ", VGA.ATTR_BG_CYAN);
    if (game.quiet)
-      game.console.setString(66, 15, "Be noisy", VGA.ATTR_BG_BLUE|VGA.ATTR_FG_WHITE);
+      game.console.setString(66, 15, "Be noisy", whiteOnBlue);
    else
-      game.console.setString(66, 15, "Be quiet", VGA.ATTR_BG_BLUE|VGA.ATTR_FG_WHITE);
+      game.console.setString(66, 15, "Be quiet", whiteOnBlue);
    game.console.setString(62, 16, " H ", VGA.ATTR_BG_GRAY);
-   game.console.setString(66, 16, "Help", VGA.ATTR_BG_BLUE|VGA.ATTR_FG_WHITE);
+   game.console.setString(66, 16, "Help", whiteOnBlue);
 
    // UDRL arrows are chars 24-27.
    game.console.set(67, 18, 0, VGA.ATTR_BG_CYAN);
    for (var i = 0; i < 4; ++i)
       game.console.set(68+i, 18, 24+i, VGA.ATTR_BG_CYAN);
-   game.console.setString(73, 18, "Move", VGA.ATTR_BG_BLUE|VGA.ATTR_FG_WHITE);
+   game.console.setString(73, 18, "Move", whiteOnBlue);
    game.console.setString(61, 19, " Shift ", VGA.ATTR_BG_GRAY);
    for (var i = 0; i < 4; ++i)
       game.console.set(68+i, 19, 24+i, VGA.ATTR_BG_GRAY);
-   game.console.setString(73, 19, "Shoot", VGA.ATTR_BG_BLUE|VGA.ATTR_FG_WHITE);
+   game.console.setString(73, 19, "Shoot", whiteOnBlue);
 
    game.console.setString(62, 21, " S ", VGA.ATTR_BG_GRAY);
-   game.console.setString(66, 21, "Save game", VGA.ATTR_BG_BLUE|VGA.ATTR_FG_WHITE);
+   game.console.setString(66, 21, "Save game", whiteOnBlue);
    game.console.setString(62, 22, " P ", VGA.ATTR_BG_CYAN);
-   game.console.setString(66, 22, "Pause", VGA.ATTR_BG_BLUE|VGA.ATTR_FG_WHITE);
+   game.console.setString(66, 22, "Pause", whiteOnBlue);
    game.console.setString(62, 23, " Q ", VGA.ATTR_BG_GRAY);
-   game.console.setString(66, 23, "Quit", VGA.ATTR_BG_BLUE|VGA.ATTR_FG_WHITE);
+   game.console.setString(66, 23, "Quit", whiteOnBlue);
 
 }
 
@@ -443,8 +482,11 @@ function gameTick()
 
       game.tick++;
 
-      // now, iterate through all objects on the board and update them
-      board.update();
+      if (!game.paused) {
+        // now, iterate through all objects on the board and update them
+        board.update();
+      } else
+        game.displayPaused = true
 
       /* update the status bar */
       drawStatusBar();
