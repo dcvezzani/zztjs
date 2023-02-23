@@ -27,6 +27,20 @@ function ZZTBoard()
    this.savedTick = null;
 }
 
+// When rendering darkness, do not include circular region around player
+// when a torch is lit
+function outsideLitRegion(x, y, player)
+{
+  (
+      (y !== player.y && ((x < player.x-6 || x > player.x+6) || (y < player.y-4 || y > player.y+4)))
+      || (y === player.y && (x < player.x-7 || x > player.x+7))
+      || (x === player.x-6 && (y < player.y-2 || y > player.y+2))
+      || (x === player.x+6 && (y < player.y-2 || y > player.y+2))
+      || ((x < player.x-4 || x > player.x+4) && (y === player.y-4 || y === player.y+4))
+    )
+}
+
+
 ZZTBoard.prototype.withinBoard = function(x, y)
 {
    if (x < 0 || x >= this.width || y < 0 || y >= this.height)
@@ -208,15 +222,7 @@ ZZTBoard.prototype.resolveDarknessGlyphAndColor = function(renderInfo, x, y, vis
        renderInfo.glyph = BreakableWall.glyph
       }
    }
-  else if ((
-      (y !== player.y && ((x < player.x-6 || x > player.x+6) || (y < player.y-4 || y > player.y+4)))
-      || (y === player.y && (x < player.x-7 || x > player.x+7))
-      || (x === player.x-6 && (y < player.y-2 || y > player.y+2))
-      || (x === player.x+6 && (y < player.y-2 || y > player.y+2))
-      || ((x < player.x-4 || x > player.x+4) && (y === player.y-4 || y === player.y+4))
-    )
-    && !visibleElement
-  ) {
+  else if (outsideLitRegion(x, y, player) && !visibleElement) {
      renderInfo.color =  VGA.ATTR_FG_WHITE
      renderInfo.glyph = BreakableWall.glyph
    }
