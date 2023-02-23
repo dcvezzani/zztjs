@@ -250,6 +250,7 @@ var Player =
 {
    glyph: 2,
    name: "player",
+   visibleInTheDark: true,
    color: VGA.ATTR_BG_BLUE|VGA.ATTR_FG_WHITE,
    update: function(board, actorIndex)
    {
@@ -277,6 +278,19 @@ var Player =
          {
             /* ? */
             goToTitleScreen();
+         }
+         else if (
+           game.inputEvent == ZInputEvent.USE_TORCH 
+           && game.world.currentBoard?.isDark
+           && game.world.playerTorches > 0
+           && game.world.torchCycles === 0
+         )
+         {
+           // torch life :22 (22 sec) (165 ticks?)
+           // :55 (55 sec) (420 ticks)
+           // 1:50 (110 sec) (840 ticks)
+           game.world.playerTorches--;
+           game.world.torchCycles = Torch.maxCycles;
          }
 
          game.inputEvent = 0;
@@ -386,6 +400,8 @@ var Torch =
 {
    glyph: 157,
    name: "torch",
+   ticksPerCycle: 33,
+   maxCycles: 5,
    takeItem: function()
    {
       if (!game.world.hasGotTorchMsg)
@@ -397,7 +413,12 @@ var Torch =
       game.world.playerTorches += 1;
       game.audio.play("tcase");
       return true;
-   }
+   },
+  die: function()
+  {
+      game.world.torchCycleOffset = null
+      game.audio.play(game.audio.SFX_TORCH_DEAD);
+  }
 }
 
 var Gem =
@@ -527,6 +548,7 @@ var Passage =
    glyph: 240,
    name: "passage",
    allowUndertile: true,
+   visibleInTheDark: true,
    onCollision: function(otherObject, board, x, y) {
       if (otherObject?.name === 'player') {
          const thisObject = board.getActorAt(x, y)
