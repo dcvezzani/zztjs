@@ -29,10 +29,14 @@ function ZZTAudio()
    }
 }
 
-ZZTAudio.prototype.SFX_TORCH_DEAD = "tc-c-c";
-ZZTAudio.prototype.SFX_PLAYER_DEAD = "s.-cd#g+c-ga#+dgfg#+cf----q.c";
-ZZTAudio.prototype.SFX_ENERGIZER_DEAD = "s.-c-a#gf#fd#c";
-ZZTAudio.prototype.SFX_TIME_RUNNING_OUT = "i.+cfc-f+cfq.c";
+const AUDIO_DICTIONARY = {
+  SFX_TORCH_DEAD: "tc-c-c",
+  SFX_PASSAGE_TRAVEL: "tcegc#fg#df#ad#ga#eg#+c",
+  SFX_PLAYER_DEAD: "s.-cd#g+c-ga#+dgfg#+cf----q.c",
+  SFX_ENERGIZER_DEAD: "s.-c-a#gf#fd#c",
+  SFX_TIME_RUNNING_OUT: "i.+cfc-f+cfq.c",
+}
+Object.keys(AUDIO_DICTIONARY).forEach(key => ZZTAudio.prototype[key] = AUDIO_DICTIONARY[key])
 
 /* table of note frequencies */
 ZZTAudio.prototype.NOTES = function()
