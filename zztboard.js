@@ -72,14 +72,11 @@ ZZTBoard.prototype.updateTorchCycles = function()
    if (game.world.torchCycles > 0) {
      if (game.world.torchCycleOffset === null) {
        game.world.torchCycleOffset = this.tick;
-       // console.log(`>>>torch cycle initialized; offset: ${game.world.torchCycleOffset}`)
      }
      else if ((Math.abs(this.tick-game.world.torchCycleOffset) % Torch.ticksPerCycle) === 0) {
        game.world.torchCycles--;
-       // console.log(`>>>torch cycle exhausted; ${game.world.torchCycles} left`)
 
        if (game.world.torchCycles === 0) {
-         // console.log(`>>>torch exhausted`)
          Torch.die()
        }
      }
@@ -90,14 +87,11 @@ ZZTBoard.prototype.update = function()
 {
    var self = this;
 
-   // console.log(">>>this.actorIndex", this.actorIndex)
    if (this.actorIndex >= this.statusElement.length)
    {
       this.tick++;
       /* According to roton the tick counter wraps at 420. */
-      // console.log(">>>tick")
       if (this.tick > 420) {
-         // console.log(">>>resetting tick")
          this.tick = 1;
       }
       this.actorIndex = 0;
@@ -167,7 +161,6 @@ ZZTBoard.prototype.move = function(sx, sy, dx, dy)
 ZZTBoard.prototype.moveActor = function(actorIndex, x, y)
 {
    var actorData = this.statusElement[actorIndex];
-   // console.log(">>> moveActor; actorData", actorData)
    var srcTile = this.get(actorData.x, actorData.y);
    var dstTile = this.get(x, y);
 

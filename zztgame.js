@@ -140,7 +140,6 @@ function mainMenuKeyDown(event)
    {
       /* play game */
       // game.world.currentBoard = game.world.board[game.world.playerBoard];
-      // console.log(">>>game.world.playerBoard", game.world.playerBoard)
       ZZTBoard.load(game.world.playerBoard)
       game.atTitleScreen = false;
    }
