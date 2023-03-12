@@ -574,7 +574,8 @@ var Passage =
          const newX = exitPassage.x
          const newY = exitPassage.y
 
-         return ZZTBoard.load(newBoardID, newX, newY)
+         Passage.travel();
+         return ZZTBoard.load(newBoardID, newX, newY);
 
          // Get passage object properties
          // - determine what room the passage is attached to
@@ -583,7 +584,11 @@ var Passage =
          // - move player to location of passage exit
          // - alternate player and passage with each tick
       }
-   }
+   },
+   travel: function()
+   {
+       game.audio.play(game.audio.SFX_PASSAGE_TRAVEL);
+   },
 }
 
 /* xstep/ystep are relative coords for source, rate is P2 */
