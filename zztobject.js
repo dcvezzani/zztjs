@@ -274,6 +274,20 @@ var Player =
             walkDirection = Direction.EAST;
          else if (game.inputEvent == ZInputEvent.WALK_WEST)
             walkDirection = Direction.WEST;
+
+         else if (game.inputEvent == ZInputEvent.SHOOT_NORTH) {
+           Bullet.create(board, this.x, this.y-1, Direction.NONE, Direction.NORTH, 'player')
+         }
+         else if (game.inputEvent == ZInputEvent.SHOOT_SOUTH) {
+           Bullet.create(board, this.x, this.y+1, Direction.NONE, Direction.SOUTH, 'player')
+         }
+         else if (game.inputEvent == ZInputEvent.SHOOT_EAST) {
+           Bullet.create(board, this.x+1, this.y, Direction.EAST, Direction.NONE, 'player')
+         }
+         else if (game.inputEvent == ZInputEvent.SHOOT_WEST) {
+           Bullet.create(board, this.x-1, this.y, Direction.WEST, Direction.NONE, 'player')
+         }
+
          else if (game.inputEvent == ZInputEvent.QUIT)
          {
             /* ? */
@@ -633,7 +647,63 @@ var CCWConveyor =
 var Bullet =
 {
    glyph: 248,
-   name: "bullet"
+   name: "bullet",
+   create: function(board, x, y, dx, dy, owner) {
+     const statusElement = {
+       x,
+       y,
+       xStep: dx,
+       yStep: dy,
+       cycle: 1,
+       param1: (owner === 'player') ? 0 : 1
+     }
+
+     const bulletObjIdx = BoardObjects.findIndex(entry => entry?.name === 'bullet')
+     const bulletTile = makeTile(bulletObjIdx, VGA.ATTR_FG_WHITE)
+     board.set(x, y, bulletTile)
+     board.statusElement.push(statusElement);
+     board.moveActor(board.statusElement.length-1, x, y)
+
+     return {tile: bulletTile, statusElement}
+   },
+   update: function(board, actorIndex)
+   {
+     const actorData = board.statusElement[actorIndex];
+     
+     // console.log(">>>Bullet, update; board, actorIndex", actorIndex, actorData)
+     let dx = actorData.x
+     let dy = actorData.y
+     if ((dx % 60 === 0) || (dy % 25 === 0)) {
+       board.set(actorData.x, actorData.y, actorData.underTile)
+       board.statusElement = board.statusElement.filter((_, index) => index !== actorIndex)
+       return false
+     }
+
+     switch(actorData.xStep) {
+       case Direction.EAST: {
+         dx += 1
+         break;
+       }
+       case Direction.WEST: {
+         dx -= 1
+         break;
+       }
+     }
+     switch(actorData.yStep) {
+       case Direction.SOUTH: {
+         dy += 1
+         break;
+       }
+       case Direction.NORTH: {
+         dy -= 1
+         break;
+       }
+     }
+
+     console.log(">>>Bullet, update; bullet pos", dx, dy, dx % 60)
+     game.world.currentBoard.move(actorData.x, actorData.y, dx, dy)
+     return true
+   }   
 }
 
 var Water =
