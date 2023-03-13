@@ -666,6 +666,11 @@ var Bullet =
 
      return {tile: bulletTile, statusElement}
    },
+   die: function(board, actorIndex)
+     const actorData = board.statusElement[actorIndex];
+     board.set(actorData.x, actorData.y, actorData.underTile)
+     board.statusElement = board.statusElement.filter((_, index) => index !== actorIndex)
+   },
    update: function(board, actorIndex)
    {
      const actorData = board.statusElement[actorIndex];
@@ -673,9 +678,10 @@ var Bullet =
      // console.log(">>>Bullet, update; board, actorIndex", actorIndex, actorData)
      let dx = actorData.x
      let dy = actorData.y
+
+     // Bullet travelled off the board; it "dies"
      if ((dx % 60 === 0) || (dy % 25 === 0)) {
-       board.set(actorData.x, actorData.y, actorData.underTile)
-       board.statusElement = board.statusElement.filter((_, index) => index !== actorIndex)
+       Bullet.die(board, actorIndex)
        return false
      }
 
@@ -700,7 +706,7 @@ var Bullet =
        }
      }
 
-     console.log(">>>Bullet, update; bullet pos", dx, dy, dx % 60)
+     // console.log(">>>Bullet, update; bullet pos", dx, dy, dx % 60)
      game.world.currentBoard.move(actorData.x, actorData.y, dx, dy)
      return true
    }   
