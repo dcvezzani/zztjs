@@ -666,7 +666,7 @@ var Bullet =
 
      return {tile: bulletTile, statusElement}
    },
-   die: function(board, actorIndex)
+   die: function(board, actorIndex) {
      const actorData = board.statusElement[actorIndex];
      board.set(actorData.x, actorData.y, actorData.underTile)
      board.statusElement = board.statusElement.filter((_, index) => index !== actorIndex)
