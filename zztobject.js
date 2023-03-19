@@ -238,7 +238,8 @@ var Empty =
 {
    glyph: 32,
    name: "empty",
-   floor: true
+   floor: true,
+   shootOverable: true,
 };
 
 var Edge =
@@ -657,14 +658,23 @@ var Bullet =
        cycle: 1,
        param1: (owner === 'player') ? 0 : 1
      }
+     const checkTile = board.get(x, y)
 
-     const bulletObjIdx = BoardObjects.findIndex(entry => entry?.name === 'bullet')
-     const bulletTile = makeTile(bulletObjIdx, VGA.ATTR_FG_WHITE)
-     board.set(x, y, bulletTile)
-     board.statusElement.push(statusElement);
-     board.moveActor(board.statusElement.length-1, x, y)
+     if (
+       checkTile?.properties?.shootable 
+       || 
+       checkTile?.properties?.shootOverable
+     ) {
+       const bulletObjIdx = BoardObjects.findIndex(entry => entry?.name === 'bullet')
+       const bulletTile = makeTile(bulletObjIdx, VGA.ATTR_FG_WHITE)
+       board.set(x, y, bulletTile)
+       board.statusElement.push(statusElement);
+       board.moveActor(board.statusElement.length-1, x, y)
 
-     return {tile: bulletTile, statusElement}
+       game.audio.play(game.audio.SFX_PLAYER_SHOOT);
+       
+       return {tile: bulletTile, statusElement}
+     }
    },
    die: function(board, actorIndex) {
      const actorData = board.statusElement[actorIndex];
@@ -706,16 +716,29 @@ var Bullet =
        }
      }
 
-     // console.log(">>>Bullet, update; bullet pos", dx, dy, dx % 60)
-     game.world.currentBoard.move(actorData.x, actorData.y, dx, dy)
-     return true
+     // get tile; check if shootable
+     const checkTile = board.get(dx, dy)
+     if (checkTile?.properties?.shootable) {
+       board.set(dx, dy, _ZZTBoard_BoardEmpty)
+       // get actor; verify is bullet and die
+       if (actorIndex >= 0) Bullet.die(board, actorIndex)
+       return false
+
+     } else if (checkTile?.properties?.shootOverable) {
+       board.move(actorData.x, actorData.y, dx, dy)
+       return true
+     }
+
+     Bullet.die(board, actorIndex)
+     return false
    }   
 }
 
 var Water =
 {
    glyph: 176,
-   name: "water"
+   name: "water",
+   shootOverable: true,
 }
 
 var Forest =
@@ -733,13 +756,14 @@ var SolidWall =
 var NormalWall =
 {
    glyph: 178,
-   name: "normal"
+   name: "normal",
 }
 
 var BreakableWall =
 {
    glyph: 177,
-   name: "breakable"
+   name: "breakable",
+   shootable: true,
 }
 
 var Boulder =
@@ -764,7 +788,8 @@ var FakeWall =
 {
    glyph: 178,
    name: "fake",
-   floor: true
+   floor: true,
+   shootOverable: true,
 }
 
 var InvisibleWall =
