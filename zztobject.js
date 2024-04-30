@@ -238,7 +238,8 @@ var Empty =
 {
    glyph: 32,
    name: "empty",
-   floor: true
+   floor: true,
+   shootOverable: true,
 };
 
 var Edge =
@@ -274,6 +275,20 @@ var Player =
             walkDirection = Direction.EAST;
          else if (game.inputEvent == ZInputEvent.WALK_WEST)
             walkDirection = Direction.WEST;
+
+         else if (game.inputEvent == ZInputEvent.SHOOT_NORTH) {
+           Bullet.create(board, this.x, this.y-1, Direction.NONE, Direction.NORTH, 'player')
+         }
+         else if (game.inputEvent == ZInputEvent.SHOOT_SOUTH) {
+           Bullet.create(board, this.x, this.y+1, Direction.NONE, Direction.SOUTH, 'player')
+         }
+         else if (game.inputEvent == ZInputEvent.SHOOT_EAST) {
+           Bullet.create(board, this.x+1, this.y, Direction.EAST, Direction.NONE, 'player')
+         }
+         else if (game.inputEvent == ZInputEvent.SHOOT_WEST) {
+           Bullet.create(board, this.x-1, this.y, Direction.WEST, Direction.NONE, 'player')
+         }
+
          else if (game.inputEvent == ZInputEvent.QUIT)
          {
             /* ? */
@@ -633,13 +648,97 @@ var CCWConveyor =
 var Bullet =
 {
    glyph: 248,
-   name: "bullet"
+   name: "bullet",
+   create: function(board, x, y, dx, dy, owner) {
+     const statusElement = {
+       x,
+       y,
+       xStep: dx,
+       yStep: dy,
+       cycle: 1,
+       param1: (owner === 'player') ? 0 : 1
+     }
+     const checkTile = board.get(x, y)
+
+     if (
+       checkTile?.properties?.shootable 
+       || 
+       checkTile?.properties?.shootOverable
+     ) {
+       const bulletObjIdx = BoardObjects.findIndex(entry => entry?.name === 'bullet')
+       const bulletTile = makeTile(bulletObjIdx, VGA.ATTR_FG_WHITE)
+       board.set(x, y, bulletTile)
+       board.statusElement.push(statusElement);
+       board.moveActor(board.statusElement.length-1, x, y)
+
+       game.audio.play(game.audio.SFX_PLAYER_SHOOT);
+       
+       return {tile: bulletTile, statusElement}
+     }
+   },
+   die: function(board, actorIndex) {
+     const actorData = board.statusElement[actorIndex];
+     board.set(actorData.x, actorData.y, actorData.underTile)
+     board.statusElement = board.statusElement.filter((_, index) => index !== actorIndex)
+   },
+   update: function(board, actorIndex)
+   {
+     const actorData = board.statusElement[actorIndex];
+     
+     // console.log(">>>Bullet, update; board, actorIndex", actorIndex, actorData)
+     let dx = actorData.x
+     let dy = actorData.y
+
+     // Bullet travelled off the board; it "dies"
+     if ((dx % 60 === 0) || (dy % 25 === 0)) {
+       Bullet.die(board, actorIndex)
+       return false
+     }
+
+     switch(actorData.xStep) {
+       case Direction.EAST: {
+         dx += 1
+         break;
+       }
+       case Direction.WEST: {
+         dx -= 1
+         break;
+       }
+     }
+     switch(actorData.yStep) {
+       case Direction.SOUTH: {
+         dy += 1
+         break;
+       }
+       case Direction.NORTH: {
+         dy -= 1
+         break;
+       }
+     }
+
+     // get tile; check if shootable
+     const checkTile = board.get(dx, dy)
+     if (checkTile?.properties?.shootable) {
+       board.set(dx, dy, _ZZTBoard_BoardEmpty)
+       // get actor; verify is bullet and die
+       if (actorIndex >= 0) Bullet.die(board, actorIndex)
+       return false
+
+     } else if (checkTile?.properties?.shootOverable) {
+       board.move(actorData.x, actorData.y, dx, dy)
+       return true
+     }
+
+     Bullet.die(board, actorIndex)
+     return false
+   }   
 }
 
 var Water =
 {
    glyph: 176,
-   name: "water"
+   name: "water",
+   shootOverable: true,
 }
 
 var Forest =
@@ -657,13 +756,14 @@ var SolidWall =
 var NormalWall =
 {
    glyph: 178,
-   name: "normal"
+   name: "normal",
 }
 
 var BreakableWall =
 {
    glyph: 177,
-   name: "breakable"
+   name: "breakable",
+   shootable: true,
 }
 
 var Boulder =
@@ -688,7 +788,8 @@ var FakeWall =
 {
    glyph: 178,
    name: "fake",
-   floor: true
+   floor: true,
+   shootOverable: true,
 }
 
 var InvisibleWall =
